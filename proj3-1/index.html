@@ -1,7 +1,305 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-1 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>  
+    div.padded {  
+      padding-top: 0px;  
+      padding-right: 100px;  
+      padding-bottom: 0.25in;  
+      padding-left: 100px;  
+    }  
+  </style> 
+<title>Anuj Shah, Melody Sifry  |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Assignment 3: PathTracer</h1>
+    <h2 align="middle">Anuj Shah, Melody Sifry</h2>
+
+    <div class="padded">
+        <p> Welcome to our project! In this project, we have built a physically-based renderer using accelerated pathtracing algorithms. Using this renderer, we were able to generate extremely realistic images at the end of our project. </p>
+
+    <h2 align="middle">Part 1: Ray Generation and Intersection</h2>
+        <h3>1.1: Walk-through of the ray generation and primitive intersection parts of the rendering pipeline:</h3>
+        <p>
+            For every  pixel in the final image, we first generate outgoing rays that contribute to it's RGB value. The
+            2D pixel coordinates in the image space are transformed to 2D points on the camera sensor plane, which are 3
+            dimensionalized into the camera space by setting the Z value of this plane as -1. Now, since we have the camera
+            at the origin and a point on the sensor plane we can generate an  in the camera space. This ray is then
+            transformed to the world space and the result is an outgoing ray corresponding to the inputted pixel. Now the
+            next question is to figure out which objects this ray intersects??
+        </p>
+        <h3>1.2: Explanation of triangle intersection algorithm</h3>
+        <p>
+            In this project, we have implemented an optimized version of the algorithm explained below in order to minimize
+            the cost of primitive operations since this function runs a couple of million times for every image.</p>
+        <p>
+            Step 1 we figure weather the plane of the triangle is parallel to the incoming ray or not. This can be done
+            using basic vector algebra between the plane normal and the ray direction. If parallel, return no intersection.
+            Next, we understand whether the ray intersects the plane within the triangle or not. The method we have chosen
+            involves getting an answer to this question without actually finding the point of intersection. If not, return
+            no intersection. Only after these preliminary checks are completed, do we proceed to actually compute the value of
+            the intersection point. We find the barycentric coordinates of this point in  order to assign it a weighted normal too.
+        </p>
+        <h3>1.3: Images with normal shading for a few small .dae files</h3>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBempty.png" width="480px" />
+                    <figcaption align="middle">Results Caption: my beautiful bunny</figcaption>
+                </tr>
+            </table>
+        </div>
+<!--        <p>Here is an example of how to include a simple formula:</p>-->
+<!--        <p align="middle"><pre align="middle">a^2 + b^2 = c^2</pre></p>-->
+<!--        <p>or, alternatively, you can include an SVG image of a LaTex formula.</p>-->
+<!--        <p>This time it's your job to copy-paste in the rest of the sections :)</p>-->
+
+    <h2 align="middle">Part 2: </h2>
+        <h3>2.1: Walk-through of the BVH construction algorithm:</h3>
+        <p>For nodes with less primitives than the maximum leaf size, we simply returned a node with the passed in start and end.
+            Otherwise, we chose the longest axis to split the primitives along, and the heuristic we chose was to split along 
+            the average of the centroids within the bounding box.
+        </p>
+        <h3>2.2: Images with normal shading for some large .dae files you can only render with BVH acceleration</h3>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBlucy.png" width="480px" />
+                    <figcaption align="middle">CBlucy rendered with BVH acceleration</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/maxplanck.png" width="480px" />
+                    <figcaption align="middle">maxplanck rendered with BVH acceleration</figcaption>
+                </tr>
+            </table>
+        </div>
+        <h3>2.3: Comparison of rendering times with moderately complex geometries with and without BVH acceleration</h3>
+        <p>We saw significant speedup when rendering using BVH acceleration. For example, cow.dae took 0.2784 seconds 
+            to render with BVH acceleration, while it took 43.6016 seconds without BVH acceleration. Similarly, teapot.dae 
+            took 20.97 seconds to render without BVH acceleration, while it only took 0.1782 to render with BVH acceleration. 
+            Rendering beast.dae with and without BVH acceleration showed similar results, with rendering taking 
+            a whopping 729.862 seconds without BVH acceleration, and only 0.2665 seconds with BVH acceleration!
+        </p>
+
+
+    <h2 align="middle">Part 3:</h2>
+        <h3>3.1: Walk-through of both implementations of the direct lighting function</h3>
+        <p>
+            The real flow of light, obviously, occurs from the world to the camera. However, since most rays arising from
+            light sources would miss the relatively small sensor plane, tracking the trajectory of all these rays to determine
+            which would hit the sensor plane and contribute to the image is a massive waste of compute power. It's easier to work
+            in the reverse direction.
+        </p>
+        <p>
+            Previously, our program took in some pixel coordinates, generated rays, figured out accelerated methods to
+            determine which objects they intersect. Now, we have to figure how to get colour from those virtual world
+            intersection.
+        </p>
+        <p>
+            Let's say P is the intersection point for a certain ray and an object in the virtual world. The amount of light
+            this point P contributes to the value of the pixel corresponding to the ray is dependent on how much light arrived
+            at the intersection point. In order to estimate how much light arrived at the intersection point, we need to integrate
+            over all the light arriving in a hemisphere around the point of interest. This comes from the definition of irradiance.
+            However, doing so would be impractical since there is no analytical solution to this integral. We chose to resort
+            to the monte carlo sampling method of integration (shown below)
+        </p>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/irradiance_monte_carlo.png" width="480px" />
+                        <figcaption align="middle">Monte Carlo Method to Finding Irradiance</figcaption>
+                </tr>
+            </table>
+        </div>
+        <p>
+            Hemispheric Sampling - Approach 1 was to choose the sample directions uniformly from the hemisphere centered
+            around the point P and in the direction of its normal. However, since the lights in the scene occupied a
+            relatively small portion of the total Surface Area in the scene, most of these samples brought in no direct
+            light to point P. Importance Sampling - This led to approach 2, which was only sampling directions from Point
+            P to the light sources. If the light source was a point, it would mean that only 1 ray would be sampled
+            and if it were a plane, a predefined number of random sample points on planar light would be chosen as sample
+            directions.
+        </p>
+        <p>
+
+        </p>
+        <h3>3.2: Images rendered with both implementations of the direct lighting function</h3>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/CBbunny_H_16_8.png" width="480px" />
+                        <figcaption align="middle">Approach 1 - Direct Hemispheric Sampling</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/bunny_64_32.png" width="480px" />
+                        <figcaption align="middle">Approach 2 - Lighting Importance Sampling</figcaption>
+                </tr>
+            </table>
+        </div>
+
+        <p>
+            Soft shadows clearly look better in the importance sampling case than the hemispheric case because the estimate
+            of the percentage of light reaching a point for the points in the soft shadow region is much more accurate in the
+            former than the latter because more relevant and contributing samples are chosen.
+        </p>
+
+        <h3>3.3: Comparison of noise levels in soft shadows using light sampling</h3>
+        <p>
+            As shown below, as the number of light rays increases by the same multiple, the enhancing effect on the soft shadows although
+            prevalent slowly tapers off. In the one light ray case, the shadows are noisy and not soft. We see the softness
+            gaining shape in 4 light rays and finally reach a satisfactory result in  the 16 case. The 64 case sees a minor
+            improvement in soft shadows.
+        </p>
+        <div align = "center">
+            <table style="width:100%">
+                <tbody><tr>
+                    <td align="center">
+                        <img src="images/CBbunny_1_1.png" width="450px">
+                        <figcaption align="middle">1 light ray Importance sampled bunny</figcaption>
+
+                    </td><td align="center">
+                    <img src="images/CBbunny_1_4.png" width="450px">
+                    <figcaption align="middle">4 light rays Importance sampled bunny</figcaption>
+                </td></tr>
+                <tr>
+                    <td align="center">
+                        <img src="images/CBbunny_1_16.png" width="450px">
+                        <figcaption align="middle">16 light rays Importance sampled bunny</figcaption>
+
+                    </td><td align="center">
+                    <img src="images/CBbunny_1_64.png" width="450px">
+                    <figcaption align="middle">64 light rays Importance sampled bunny</figcaption>
+                </td></tr>
+                </tbody></table>
+        </div>
+
+
+        <h3>3.4: Comparison of results between uniform hemisphere sampling and lighting importance sampling</h3>
+        <p>
+            While uniform hesmiphere sampling is non-trivially quicker an algorithm than the one for lighting importance
+            sampling, the results of the latter are significantly better than the former in terms shadows and noisyness.
+        </p>
+    <h2 align="middle">Part 4:</h2>
+        <h3>4.1: Walk-through of  implementations of the indirect lighting function</h3>
+        <p>
+            Previously, the light we captured at intersection points of camera rays and objects only involved contributions
+            from direct lighting in the scene. However, every point in the scene is also indirectly lit by every other point
+            in the scene. In this section, we address that.
+        </p>
+        <p>
+            This is naturally a recursive algorithm since just like our particular intersection point is indirectly lit by
+            other points, they too are. The depth of this recursion is predefined. The process is such: we first take a sample
+            from the surface BSDF, use Russian roulette random sampling with p = 0.6 to determine if we want to terminate the
+            ray. Then, we recursively trace the ray, convert incoming radiance into an monte carlo estimation, and then return that.
+        </p>
+        <h3>4.2: Images rendered with global (direct and indirect) illumination</h3>
+        <div align = "center">
+            <table style="width:100%">
+                <tbody><tr>
+                    <td align="center">
+                        <img src="images/spheres.png" width="450px">
+                        <figcaption align="middle">Spheres that are globally illuminated</figcaption>
+                    </td></tr>
+                </tbody></table>
+        </div>
+        <h3>4.3: Comparison of views with only direct illumination and only indirect illumination</h3>
+        <div align = "center">
+            <table style="width:100%">
+                <tbody><tr>
+                    <td align="center">
+                        <img src="images/p4-bunny-direct.png" width="450px">
+                        <figcaption align="middle">directly lit bunny</figcaption>
+
+                    </td><td align="center">
+                    <img src="images/p4-bunny-indirect.png" width="450px">
+                    <figcaption align="middle">indirectly lit bunny</figcaption>
+                </td></tr>
+                <tr>
+                    <td align="center">
+                        <img src="images/ray_depths_bunny.gif" width="450px">
+                        <figcaption align="middle">Summary of bunny with different ray depths</figcaption>
+
+                    </td><td align="center">
+                    <img src="images/sample_rates_bunny.gif" width="450px">
+                    <figcaption align="middle">Summary of bunny with different sample rates</figcaption>
+                </td></tr>
+                </tbody></table>
+        </div>
+
+        
+    <h2 align="middle">Part 5:</h2>
+        <h3>5.1: Walk-through of implementations of adaptive sampling</h3>
+        <p>
+            Every region in the image doesn't have the same colour frequency. Consequently, the pixels in
+            different regions of the same image be could be sampled at different rates too. This idea is formalized with
+            the concept of adaptive sampling. Pixels with samples that are showing high variance are sampled more than ones
+            with every sample showing similar values. The code keeps track of a running average and variance for every pixel
+            through it's sampling process and also calculates it's "convergence" metric I at regular intervals (shown below)
+        </p>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/convergence_metric.png" width="480px" />
+                        <figcaption align="middle">Convergence Metric</figcaption>
+                </tr>
+            </table>
+        </div>
+        <p>
+            If the convergence metric drops below a predefined maxTolerance rate with respect to the running average or the
+            number of samples reaching its max value, the sampling process is terminated and the colour of the pixel is assigned
+            at that point.
+        </p>
+        <h3>5.2: Scene rendered showing differences in sampling rate over various regions and pixels</h3>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/bunny.png" width="480px" />
+                        <figcaption align="middle">Image rendered using adaptive sampling</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width:100%">
+                <tr>
+                    <td align="middle">
+                        <img src="images/bunny_rate.png" width="480px" />
+                        <figcaption align="middle">Rate of sampling. Blue (Low), Red (High)</figcaption>
+                </tr>
+            </table>
+        </div>
+<!--    <h2 align="middle">A Few Notes On Webpages</h2>-->
+<!--        <p>Here are a few problems students have encountered in the past. You will probably encounter these problems at some point, so don't wait until right before the deadline to check that everything is working. Test your website on the instructional machines early!</p>-->
+<!--        <ul>-->
+<!--        <li>Your main report page should be called index.html.</li>-->
+<!--        <li>Be sure to include and turn in all of the other files (such as images) that are linked in your report!</li>-->
+<!--        <li>Use only <em>relative</em> paths to files, such as <pre>"./images/image.jpg"</pre>-->
+<!--        Do <em>NOT</em> use absolute paths, such as <pre>"/Users/student/Desktop/image.jpg"</pre></li>-->
+<!--        <li>Pay close attention to your filename extensions. Remember that on UNIX systems (such as the instructional machines), capitalization matters. <pre>.png != .jpeg != .jpg != .JPG</pre>-->
+<!--        <li>Be sure to adjust the permissions on your files so that they are world readable. For more information on this please see this tutorial: <a href="http://www.grymoire.com/Unix/Permissions.html">http://www.grymoire.com/Unix/Permissions.html</a></li>-->
+<!--        <li>And again, test your website on the instructional machines early!</li>-->
+
+        <p>
+            Thank you for getting till here! Hope you enjoyed learning about our Ray Tracing project. More to come!
+        </p>
+</div>
+</body>
 </html>
