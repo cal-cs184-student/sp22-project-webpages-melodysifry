@@ -1,7 +1,170 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>  
+    div.padded {  
+      padding-top: 0px;  
+      padding-right: 100px;  
+      padding-bottom: 0.25in;  
+      padding-left: 100px;  
+    }  
+  </style> 
+<title>Melody Sifry and Anuj Shah  |  CS 184</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+<br />
+<h1 align="middle">Assignment 3: PathTracer</h1>
+    <h2 align="middle">Melody Sifry and Anuj Shah</h2>
+	
+    <div class="padded">
+		<p>Link to write-up: https://cal-cs184-student.github.io/sp22-project-webpages-melodysifry/proj3-2/index.html</p>
+
+        <p> In this project, we have added new features to the physcially based renderer that we built in the first half of this project
+        The new features include handling the balance between reflection and refraction through transparent materials and also handling
+        varying levels of depth of  field in the virtual camera.</p>
+
+    <h2 align="middle">Part 1: Mirror and Glass Materials</h2>
+        <p>
+            To implement the rendering of mirrors and glass, it is important to get reflection and refraction correct. The former was implemented first in a way such the functions. receives a vector and returns it’s reflection at that point.
+
+            Refraction was implemented based on logic provided by Snell’s Law. The output vector is assigned a direction if and only if the total internal reflection condition is not fulfilled.
+
+            Next, it was important to figure out the proportion of reflect vs refract that each material offered. The Schlick’s approximation was used to determine the ratio of reflection energy to refraction energy, which is then used as a probability to determine if that particular sample ray is one that undergoes reflection or refraction.
+
+        </p>
+        <h3>Here's a sequence of seven images of scene CBspheres.dae rendered with max_ray_depth set to 0, 1, 2, 3, 4, 5, and 100:</h3>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m0.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 0</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m1.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 1</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m2.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 2</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m3.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 3</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m4.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 4</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m5.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 5</figcaption>
+                </tr>
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBspheres_m100.png" width="480px" />
+                    <figcaption align="middle">max_ray_depth set to 100</figcaption>
+                </tr>
+            </table>
+        </div>
+        <p>
+            At m = 0, only the light is illuminated
+            At m = 1, only objects illuminated by direct lighting occurs without any refraction or reflection
+            At m = 2, 1 reflection is allowed and we can now see the mirror surface
+            At m = 3, refraction is allowed to occur through the glass and out of it and now we can see the glass surface. however, the reflectionof this glass ball is still dark
+            At m = 4, we see a glassy ball in the reflection noow
+            At m = 5, we see light going through the ball and coming out on the other side on the wall
+            At m = 100, there's higher levels of global illumination since more bounces are allowed. This is closest to the real world image.
+
+
+    <h2 align="middle">Part 4: Depth of Field</h2>
+        <h3>4.1 Explanation of the differences between a pinhole camera model and a thin-lens camera model, and explanation of implementation:</h3>
+        <p>With a pinhole camera, everything is in focus. This is because instead of having a lens, every ray is passing through a single point. With the thin lens model, the point pFilm on the image plane can now receive radiance from anywhere on the thin lens. Additionally, rays passing through the lens are refracted and change direction as they pass through the thin lens, which isn’t something we have to account for with a pinhole model. These factors result in only a parts of the image being in focus- a depth of field effect. </p>
+        <p>To account for these differences, in our implementation, we uniformly sampled a point on the lens using the passed-in parameters rndR and rndTheta. We trace the ray through this point instead of through (0,0,0), and find the refracted direction. We generated the final ray by subtracting pLens from pFocus, normalizing, then transforming the vector into world space to use as the direction, and using pLens transformed into world space + pos as the origin.</p>
+        <h3>4.2 "Focus stack" where we focus at 4 visibly different depths through a scene:</h3>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_d2.9.png" width="480px" />
+                    <figcaption align="middle">depth = 2.9</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_d3.2.png" width="480px" />
+                    <figcaption align="middle">depth = 3.2</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_d3.7.png" width="480px" />
+                    <figcaption align="middle">depth = 3.7</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_d4.5.png" width="480px" />
+                    <figcaption align="middle">depth = 4.5</figcaption>
+                </tr>
+            </table>
+        </div>
+        <h3>4.3 Sequence of 4 pictures with visibly different aperture sizes, all focused at the same point in a scene:</h3>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_b0.02.png" width="480px" />
+                    <figcaption align="middle">lens radius = 0.02</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_b0.1.png" width="480px" />
+                    <figcaption align="middle">lens radius = 0.1</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_b0.15.png" width="480px" />
+                    <figcaption align="middle">lens radius = 0.15</figcaption>
+                </tr>
+            </table>
+        </div>
+        <div align="center">
+            <table style="width=100%">
+                <tr>
+                    <td align="middle">
+                    <img src="images/CBdragon_b0.2.png" width="480px" />
+                    <figcaption align="middle">lens radius = 0.2</figcaption>
+                </tr>
+            </table>
+        </div>
+
+
+    <h2 align="middle">How we collaborated</h2>
+        <p>We split up the tasks, with Anuj implementing part 1 and Melody implementing part 4, but we collaborated with each other on discussing overall approach and clarifying each other's understanding of the spec and concepts.</p>
+</body>
 </html>
