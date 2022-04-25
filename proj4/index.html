@@ -1,7 +1,268 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 4 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Mesh Editor</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2017</h1>
+<h1 align="middle">Project 4: Cloth Simulator</h1>
+<h2 align="middle">Melody Sifry and Anuj Shah, CS184</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p>Give a high-level overview of what you implemented in this project. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the project.</p>
+
+<h2 align="middle">Part 1: Masses and springs</h2>
+  <h3>Some screenshots of scene/pinned2.json from a viewing angle where you can clearly see the 
+    cloth wireframe to show the structure of your point masses and springs.</h3>
+  <h3>How the wireframe looks without any shearing constraints</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/pinned2-no-shearing.png" width="480px" />
+            <figcaption align="middle">scene/pinned2.json with no shearing constraints</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>How the wireframe looks with only shearing constraints</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/pinned2-only-shearing.png" width="480px" />
+            <figcaption align="middle">scene/pinned2.json with only shearing constraints</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>How the wireframe looks with all constraints</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/pinned2-all-constraints.png" width="480px" />
+            <figcaption align="middle">scene/pinned2.json with all constraints</figcaption>
+        </tr>
+    </table>
+  </div>
+<h2 align="middle">Part 2: Simulation via numerical integration </h2>
+  <h3>Description of effects of changing the spring constant ks</h3>
+    <p>with a high ks, the cloth falls in a much stiffer way. With a low ks, there are more ripples in 
+      the cloth as it falls. </p>
+  <h3>Description of effects of changing the density</h3>
+    <p>with a larger density, it looks like it takes longer to get to a still rest state, and there are more smaller ripples</p>
+  <h3>Description of effects of changing the damping</h3>
+    <p>with higher damping, it falls to its rest state much slower</p>
+  <h3>Screenshot of shaded cloth from scene/pinned4.json in its final resting state</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/pinned4-resting.png" width="480px" />
+            <figcaption align="middle">scene/pinned4.json at rest state</figcaption>
+        </tr>
+    </table>
+  </div>
+<h2 align="middle">Part 3: Handling collisions with other objects</h2>
+  <h3>Screenshots of shaded cloth from scene/sphere.json in its final resting state on the sphere 
+    using default ks = 5000</h3>
+    <div align="center">
+      <table style="width=100%">
+          <tr>
+              <td align="middle">
+              <img src="images/sphere-ks-5000.png" width="480px" />
+              <figcaption align="middle">scene/sphere.json with ks 5000</figcaption>
+          </tr>
+      </table>
+    </div>
+  <h3>Screenshots of shaded cloth from scene/sphere.json in its final resting state on the sphere 
+    using  ks = 500</h3>
+    <div align="center">
+      <table style="width=100%">
+          <tr>
+              <td align="middle">
+              <img src="images/sphere-ks-500.png" width="480px" />
+              <figcaption align="middle">scene/sphere.json with ks 500</figcaption>
+          </tr>
+      </table>
+    </div>
+  <h3>Screenshots of shaded cloth from scene/sphere.json in its final resting state on the sphere 
+    using default ks = 50000</h3>
+    <div align="center">
+      <table style="width=100%">
+          <tr>
+              <td align="middle">
+              <img src="images/sphere-ks-50000.png" width="480px" />
+              <figcaption align="middle">scene/sphere.json with ks 50000</figcaption>
+          </tr>
+      </table>
+    </div>
+  <h3>Screenshot of shaded cloth lying peacefully at rest on the plane</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/plane-rest.png" width="480px" />
+            <figcaption align="middle">scene/plane.json</figcaption>
+        </tr>
+    </table>
+  </div>
+<h2 align="middle">Part 4: Handling self-collisions</h2>
+  <h3>Screenshots that document how your cloth falls and folds on itself</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/selfCollision-1.png" width="480px" />
+            <figcaption align="middle">scene/selfCollision.json early</figcaption>
+        </tr>
+        <tr>
+          <td align="middle">
+          <img src="images/selfCollision-2.png" width="480px" />
+          <figcaption align="middle">scene/selfCollision.json middle</figcaption>
+        </tr>
+        <tr>
+          <td align="middle">
+          <img src="images/selfCollision-3.png" width="480px" />
+          <figcaption align="middle">scene/selfCollision.json late</figcaption>
+        </tr>
+        
+    </table>
+  </div>
+  <h3>Effects of varying the density and ks</h3>
+    <p>Higher ks results in stiffer, larger ripples whereas lower ks has smaller ripples. Higher density results
+      in most of the cloth staying flat until it gets towards the bottom, so the collision effects go through the cloth from bottom to top slower.
+    </p>
+    <div align="center">
+    <table style="width=100%">
+      <tr>
+          <td align="middle">
+          <img src="images/selfCollision-high-density.png" width="480px" />
+          <figcaption align="middle">scene/selfCollision.json high density</figcaption>
+      </tr>
+      <tr>
+        <td align="middle">
+        <img src="images/selfCollision-ks-low.png" width="480px" />
+        <figcaption align="middle">scene/selfCollision.json low ks</figcaption>
+      </tr>
+      <tr>
+        <td align="middle">
+        <img src="images/selfCollision-ks-high.png" width="480px" />
+        <figcaption align="middle">scene/selfCollision.json high ks</figcaption>
+      </tr>
+  </table></div>
+<h2 align="middle">Part 5: Shaders</h2>
+  <h3>Explanation of what a shader program is and how vertex and fragment shaders work together to 
+    create lighting and material effects</h3>
+    <p>A shader program, firstly, is a set of instructions, part of the graphics pipeline, that are sent to the GPU. They run in parallel. the vertex shaders are mainly involved in manipulation vertices in the 3d space, this includes both vertex positions and vertex attributes. These vertex characteristics are sent as inputs to the corresponding fragment program. The fragment is responsible for one of the last steps of the graphics pipeline i.e. to compute the color of each fragment and this is done using the vertex data provided by the vertex shader. </p>
+  <h3>Explanation of Blinn-Phong shading model</h3>
+    <p>The blind phong model basically divides the lighting of a point into three parts - diffused, specular and ambient lighting. Diffused lighting is that of general rough material (an incoming beam of light get reflected in all directions), specular lighting is the perfectly reflective component of that material’s appearance (rays of light follow the law of reflection and this gives the glossy, mirrory effect), ambient light is the general enivironment indirect light that lights up the space that particular vertex exists in (was largely created in this model to bridge the gap between reality and the addition of the other two, one could say that it tries to model indirect beams of light)</p>
+  <h3>Screenshot of Blinn-Phong shader outputting only the ambient component</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/phong-ambient.png" width="480px" />
+            <figcaption align="middle">scene/sphere.json with just ambient</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>Screenshot of Blinn-Phong shader outputting only the diffuse component</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/phong-diffuse.png" width="480px" />
+            <figcaption align="middle">scene/sphere.json with just diffuse</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>Screenshot of Blinn-Phong shader outputting only the specular component</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/phong-specular.png" width="480px" />
+            <figcaption align="middle">scene/sphere.json with just specular</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>Screenshot of Blinn-Phong shader using entire Blinn-Phong model</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/phong-entire.png" width="480px" />
+            <figcaption align="middle">scene/sphere.json with entire blinn-phong</figcaption>
+        </tr>
+    </table>
+  </div>
+  <h3>Screenshot of texture mapping shader using cusotm texture</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/custom1.jpeg" width="480px" />
+            <figcaption align="middle">custom shader</figcaption>
+        </tr>
+        <tr>
+          <td align="middle">
+          <img src="images/custom2.jpeg" width="480px" />
+          <figcaption align="middle">custom shader</figcaption>
+      </tr>
+      <tr>
+        <td align="middle">
+        <img src="images/custom3.jpeg" width="480px" />
+        <figcaption align="middle">custom shader</figcaption>
+    </tr>
+    </table>
+  </div>
+  <h3>Screenshot of bump mapping on the cloth and on the sphere</h3>
+  <h3>Screenshot of displacement mapping on the sphere</h3>
+  <h3>Comparison of the two approaches and resulting renders</h3>
+    <p>comparison description</p>
+  <h3>Comparison of how the two shaders react to the sphere by changing sphere's mesh coarseness using
+    -o 16 -a 16 and then -o 128 -a 128.
+  </h3>
+  <h3>Screenshot of mirror shader on the cloth and on the sphere</h3>
+  <div align="center">
+    <table style="width=100%">
+        <tr>
+            <td align="middle">
+            <img src="images/mirror-sphere1.jpeg" width="480px" />
+            <figcaption align="middle">mirror shader</figcaption>
+        </tr>
+        <tr>
+          <td align="middle">
+          <img src="images/mirror-sphere.jpeg" width="480px" />
+          <figcaption align="middle">mirror shader</figcaption>
+      </tr>
+    </table>
+  </div>
+
+
+
+</body>
 </html>
